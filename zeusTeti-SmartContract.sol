@@ -293,10 +293,41 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
         // if the user that call this function is not win on the particular draw => cant claim
         require(_winnersPerLotteryId[msg.sender][_lottoId] == 1, "Not Payable");
         uint256 winners = _lotteries[_lottoId].winnerCount;
+        // divide equally the prize for each winner
         uint256 payout = (_lotteries[_lottoId].totalPayout).div(winners);
         paytoken.safeTransfer(msg.sender, payout);
+        // user can only claim once. If user already claim, set to 0
         _winnersPerLotteryId[msg.sender][_lottoId] = 0;
    }
+
+    // to allow user check their ticket number
+    function viewTickets(uint256 ticketId) external view returns (address, uint[4] memory) {
+        address buyer;
+        buyer = _tickets[ticketId].owner;
+        uint[6] memory numbers;
+        numbers = _tickets[ticketId].chooseNumbers;
+        return (buyer, numbers);
+    }
+
+    // return struct lottery information 
+    function viewLottery(uint256 _lotteryId) external view returns (Lottery memory) {
+        return _lotteries[_lotteryId];
+    }
+
+    // for owner => get how much token that the platform has
+    function getBalance() external view onlyOwner returns(uint256) {
+        return paytoken.balanceOf(address(this));
+    }
+
+    // for owner => fund the platform money (to the smart contract)
+    function fundContract(uint256 amount) external onlyOwner {
+        paytoken.safeTransferFrom(address(msg.sender), address(this), amount);
+    }
+
+    // for owner => pass entire ballance to the owner
+    function withdraw() public onlyOwner() {
+      paytoken.safeTransfer(address(msg.sender), (paytoken.balanceOf(address(this))));
+    }
 
     // call this to get the random number
     // view => not change the contract state && external => can be called outside the contract 
