@@ -82,13 +82,14 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
 
     mapping(uint256 => Lottery) private _lotteries;
     mapping(uint256 => Ticket) private _tickets;
+    // mapping wallet address to draw that store all the ticket number => all ticket per draw per user
     mapping(address => mapping(uint256 => uint256[])) private _userTicketIdsPerLotteryId;
 
     // mapping if buyer is winning lottery on particular draw
     mapping(address => mapping(uint256 => uint256)) public _winnersPerLotteryId;
-
+    // Generate log history on the lucky number for each draw
     event LotteryWinnerNumber(uint256 indexed lotteryId, uint[4] finalNumber);
-
+    // info on last ticket number of each draw
     event LotteryClose(
         uint256 indexed lotteryId,
         uint256 lastTicketId
