@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT LICENSE
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -9,7 +8,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 pragma solidity ^0.8.7;
 
-contract TetiToken is ERC20, ERC20Burnable, Ownable, AccessControl {
+contract TetiToken is ERC20, ERC20Burnable, AccessControl {
   using SafeMath for uint256;
 
   mapping(address => uint256) private _balances;
@@ -21,8 +20,8 @@ contract TetiToken is ERC20, ERC20Burnable, Ownable, AccessControl {
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
   constructor() ERC20("TETICoin", "TETIC") {
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(MINTER_ROLE, _msgSender());
+    _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    _grantRole(MINTER_ROLE, _msgSender());
     }
 
   function mint(address to, uint256 amount) external {
