@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "teticoin.sol";
+import "zeusTeti-ERC20.sol";
 
 
 contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
@@ -305,7 +305,7 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
     function viewTickets(uint256 ticketId) external view returns (address, uint[4] memory) {
         address buyer;
         buyer = _tickets[ticketId].owner;
-        uint[6] memory numbers;
+        uint[4] memory numbers;
         numbers = _tickets[ticketId].chooseNumbers;
         return (buyer, numbers);
     }
