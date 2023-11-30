@@ -66,8 +66,8 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
         uint256 startTime;
         uint256 endTime;
         uint256 firstTicketId;      // fist ticket id of each draw
-        uint256 lastTicketId;       // last ticket id of each draw
         uint256 transferJackpot;    // Safe the price Pool for each draw. Open at 1000 token 
+        uint256 lastTicketId;       // last ticket id of each draw
         uint[4] winningNumbers;
         uint256 totalPayout;        // jackpot that are diveded for each winner
         uint256 commision;          // money for me (developer)
