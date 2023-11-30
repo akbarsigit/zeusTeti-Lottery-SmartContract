@@ -133,7 +133,7 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
         _lotteries[currentLotteryId] = Lottery({
             status: Status.Open,
             startTime: block.timestamp,
-            endTime: (block.timestamp).add(1 hours),
+            endTime: 100,
             firstTicketId: currentTicketId,
             transferJackpot: fundJackpot,
             winningNumbers: [uint(0), uint(0), uint(0), uint(0)],
@@ -208,6 +208,7 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
             exists: true,
             fulfilled: false
         });
+        
         lastRequestId = requestId;
         emit LotteryClose(currentLotteryId, currentTicketId);
     }
@@ -249,43 +250,40 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
         return numbers;
     }
 
+    function countWinners(uint[4] memory array, uint256 _lottoId) external onlyOwner {
+       require(_lotteries[_lottoId].status == Status.Close, "Lottery not close");
+       require(_lotteries[_lottoId].status != Status.Claimable, "Lottery Already Counted");
+       // reset the previous user that win in the last draw 
+       delete numberWinner;
+       uint256 firstTicketId = _lotteries[_lottoId].firstTicketId;
+       uint256 lastTicketId = _lotteries[_lottoId].lastTicketId;
+       
+       uint[4] memory winOrder;
 
-    function countWinners(uint[4] memory luckNumber, uint256 _lottoId) external onlyOwner {
-        require(_lotteries[_lottoId].status == Status.Close, "Lottery not close");
-        require(_lotteries[_lottoId].status != Status.Claimable, "Lottery Already Counted");
+       // sort the lucky number
+       winOrder = sortArrays(array);
 
-        // reset the previous user that win in the last draw 
-        delete numberWinner;
+       // hash the lucky number and compare to the user number  
+       bytes32 encodeWin = keccak256(abi.encodePacked(winOrder));
+       uint256 i = firstTicketId;
+        for (i; i < lastTicketId; i++) {
+            address buyer = _tickets[i].owner;
+            uint[4] memory userNum = _tickets[i].chooseNumbers;
 
-        uint256 firstTicketId = _lotteries[_lottoId].firstTicketId;
-        uint256 lastTicketId = _lotteries[_lottoId].lastTicketId;
-
-        uint[4] memory winOrder;
-        // sort the lucky number
-        winOrder = sortArrays(luckNumber);
-
-        // hash the lucky number and compare to the user number  
-        bytes32 encodeWin = keccak256(abi.encodePacked(winOrder));
-        uint256 i = firstTicketId;
-            for (i; i < lastTicketId; i++) {
-                address buyer = _tickets[i].owner;
-                uint[4] memory userNum = _tickets[i].chooseNumbers;
-                // does not need to sort the number from user, because we dit it in the FE
-                bytes32 encodeUser = keccak256(abi.encodePacked(userNum));
-                if (encodeUser == encodeWin) {
-                    numberWinner++;
-                    _lotteries[_lottoId].winnerCount = numberWinner;
-                    // store buyyer address that win => mark it as 1
-                    _winnersPerLotteryId[buyer][_lottoId] = 1;
-                }
-            }
-            // if no winner => transfer prize pool on this draw to the next draw
-            if (numberWinner == 0){
-                uint256 nextLottoId = (currentLotteryId).add(1);
-                _lotteries[nextLottoId].transferJackpot = _lotteries[currentLotteryId].totalPayout;
-            }
-        // If all procedure was done => user can claim the reward
-        _lotteries[currentLotteryId].status = Status.Claimable;
+            // does not need to sort the number from user, because we dit it in the FE
+            bytes32 encodeUser = keccak256(abi.encodePacked(userNum));
+              if (encodeUser == encodeWin) {
+                  numberWinner++;
+                  _lotteries[_lottoId].winnerCount = numberWinner;
+                  // store buyyer address that win => mark it as 1
+                  _winnersPerLotteryId[buyer][_lottoId] = 1;
+              }
+        }
+        if (numberWinner == 0){
+            uint256 nextLottoId = (currentLotteryId).add(1);
+            _lotteries[nextLottoId].transferJackpot = _lotteries[currentLotteryId].totalPayout;
+        }
+    _lotteries[currentLotteryId].status = Status.Claimable;
    }
    
    function claimPrize(uint256 _lottoId) external nonReentrant {
