@@ -250,20 +250,20 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
         return numbers;
     }
 
-    function countWinners(uint[4] memory array, uint256 _lottoId) external onlyOwner {
-       require(_lotteries[_lottoId].status == Status.Close, "Lottery not close");
-       require(_lotteries[_lottoId].status != Status.Claimable, "Lottery Already Counted");
+    function countWinners() external onlyOwner {
+       require(_lotteries[currentLotteryId].status == Status.Close, "Lottery not close");
+       require(_lotteries[currentLotteryId].status != Status.Claimable, "Lottery Already Counted");
        // reset the previous user that win in the last draw 
        delete numberWinner;
-       uint256 firstTicketId = _lotteries[_lottoId].firstTicketId;
-       uint256 lastTicketId = _lotteries[_lottoId].lastTicketId;
+       uint256 firstTicketId = _lotteries[currentLotteryId].firstTicketId;
+       uint256 lastTicketId = _lotteries[currentLotteryId].lastTicketId;
        
        uint[4] memory winOrder;
 
        // sort the lucky number
-       winOrder = sortArrays(array);
+       winOrder = sortArrays(_lotteries[currentLotteryId].winningNumbers);
 
-       // hash the lucky number and compare to the user number  
+         //    Hash and compare to the lucky number of the user
        bytes32 encodeWin = keccak256(abi.encodePacked(winOrder));
        uint256 i = firstTicketId;
         for (i; i < lastTicketId; i++) {
@@ -274,9 +274,9 @@ contract ZeusTeti is ReentrancyGuard, VRFConsumerBaseV2, Ownable {
             bytes32 encodeUser = keccak256(abi.encodePacked(userNum));
               if (encodeUser == encodeWin) {
                   numberWinner++;
-                  _lotteries[_lottoId].winnerCount = numberWinner;
                   // store buyyer address that win => mark it as 1
-                  _winnersPerLotteryId[buyer][_lottoId] = 1;
+                  _lotteries[currentLotteryId].winnerCount = numberWinner;
+                  _winnersPerLotteryId[buyer][currentLotteryId] = 1;
               }
         }
         if (numberWinner == 0){
